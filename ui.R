@@ -1,12 +1,27 @@
+## load packages 
 library(shiny)
 library(knitr)
 library(bslib)
 library(ggplot2)
 library(plotly)
+library(leaflet)
+source("resource/src/data.R")
 thematic::thematic_shiny(font = "auto")
+vars <- c(
+  "Confirmed cases" = "Confirmed",
+  "Deaths" = "Deaths",
+  "Recovered" = "Recovered"
+)
+
+per <- c(
+  "All" = "all",
+  "3 Months" = "three_months",
+  "1 Month" = "one_month",
+  "15 Days" = "fifteen_days"
+)
 # Define UI for random distribution application 
 ui <- navbarPage("Fundamental Statistics",
-                 theme = bs_theme(bootswatch = "sandstone"),
+                theme = bs_theme(bootswatch = "journal"),
                  ############# tab #############
                  ############# tab #############
                  tabPanel("Home Page",
@@ -14,12 +29,13 @@ ui <- navbarPage("Fundamental Statistics",
                           column(2),
                           column(8, align = "left",
                                  withMathJax(includeMarkdown("resource/Hello_World.md")),
-                                 tags$iframe(src = "https://shiny.rstudio.com/gallery/", width="100%", height=500)),
+                                 tags$iframe(src = "https://shiny.rstudio.com/gallery/", width="100%", height=500)
+                                 ),
                           column(2)
                           )),
                  ############# tab #############
                  ############# tab #############
-                 tabPanel("Distributions",
+                 tabPanel("Statistics Distributions",
                     # Application title
                     headerPanel("Distribution Visualization"),
                     sidebarLayout(
@@ -35,7 +51,7 @@ ui <- navbarPage("Fundamental Statistics",
                       ),
                       
                       wellPanel(
-                        numericInput("seed",p(strong("Set a seed for reproduciblity:")), 2021)
+                        numericInput("seed",p(strong("Set a seed for reproduciblity:")), 42)
                       ),
                       wellPanel(
                         selectInput(inputId = "pdf_cdf",
@@ -67,13 +83,27 @@ ui <- navbarPage("Fundamental Statistics",
                       ))),
                   ############# tab #############
                   ############# tab #############
-                  tabPanel("COVID-2019 Map", 
-                           headerPanel("Distribution Visualization"),
-                           fluidRow(
-                             column(2),
-                             column(8, align = "left",
-                                    tags$iframe(src = "https://www.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6https://www.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6", width="100%", height=500)),
-                             column(2)
-                           )
+                  tabPanel("COVID19 Data",
+                           headerPanel("COVID19 Data Visualization"),
+                           div(class="outer",
+                               tags$head(
+                                 HTML('<meta name="viewport" content="width=800">'),
+                                 includeCSS("resource/src/style.css")
+                               ),
+                               br(),
+                               leafletOutput("map", width="100%", height="90%"),
+                               absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+                                             draggable = FALSE, top = 200, left = "auto", right = 20, bottom = "auto",
+                                             width =500, height = "auto",
+                                             h2("COVID19 Daily Data"),
+                                             selectInput("type", "Stat Type", vars),
+                                             dateInput("startdate", "Start Date:", value = "2020-02-01"),
+                                             dateInput("enddate", "End Date:", value = "2021-02-01"),
+                                             plotlyOutput("country", width = 400, height = 300),
+                                             plotlyOutput("fig_usa", width = 400, height = 300)
+                               ),
+                               tags$div(id="cite", 'Data source: ', icon("github"), a(tags$em('John Hopkins University'), href="https://github.com/CSSEGISandData/COVID-19"), '.')
+                           )),
+                  tabPanel("bayes theorem",
                            )
 )

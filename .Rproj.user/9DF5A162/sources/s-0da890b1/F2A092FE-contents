@@ -1,6 +1,8 @@
 library(shiny)
 library(ggplot2)
 library(plotly)
+library(leaflet)
+library(rgeos)
 
 # Define server logic for random distribution application
 shinyServer(function(input, output){
@@ -261,4 +263,69 @@ shinyServer(function(input, output){
       withMathJax("Probability Density Distribution: $$p(x) = \\frac{k}{\\lambda} (\\frac{x}{\\lambda})^{k-1} e^{-(x/\\lambda)^{k}}, x \\geq 0$$  $$p(x) = 0,  x < 0$$")
     }
     })
+  
+## COVID MAP
+  observeEvent(input$map_shape_click, {
+    p <- input$map_shape_click 
+    cnty <- p$id
+    type <- input$type
+    startdate <- input$startdate
+    enddate <- input$enddate
+    if(type == "Confirmed"){
+      plot_data <- conf_ts%>% 
+        filter(Country_Region == cnty, Cases > 0) %>% 
+        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
+      countryname <- cnty
+      plot_data_us <- conf_ts %>%
+        filter(Country_Region == "United States")%>% 
+        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
+    }else if(type == "Deaths"){
+      plot_data <- deaths_ts%>% 
+        filter(Country_Region == cnty, Cases > 0) %>% 
+        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
+      countryname <<- cnty
+      plot_data_us <- deaths_ts %>%
+        filter(Country_Region == "United States")%>% 
+        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
+    }else if(type == "Recovered"){
+      plot_data <- recovered_ts%>% 
+        filter(Country_Region == cnty, Cases > 0) %>% 
+        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
+      countryname <- cnty
+      plot_data_us <- recovered_ts %>%
+        filter(Country_Region == "United States")%>% 
+        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
+    }
+    
+    plot_data <- subset(plot_data, Date >= startdate & Date <= enddate)
+    plot_data_us <- subset(plot_data_us, Date >= startdate & Date <= enddate)
+    output$country <- renderPlotly({
+      fig <- plot_ly(plot_data, x = ~Date, y = ~Daily_Cases, type = 'scatter', mode = 'lines+markers') %>% 
+        layout(xaxis = list(title = cnty, tickformat = "%d/%m/%y"),
+               yaxis = list(title = "", tickformat = "s"),
+               margin = list(l=0, r=0)) %>% 
+        config(displayModeBar = FALSE, displaylogo = FALSE)
+      fig
+    })
+    output$fig_usa <- renderPlotly({
+      fig_usa <- plot_ly(plot_data_us, x = ~Date, y = ~Daily_Cases, type = 'scatter', mode = 'lines+markers') %>% 
+        layout(xaxis = list(title = "USA", tickformat = "%d/%m/%y"),
+               yaxis = list(title = "", tickformat = "s"),
+               margin = list(l=0, r=0)) %>% 
+        config(displayModeBar = FALSE, displaylogo = FALSE)
+      fig_usa
+    })
+  }) 
+  
+  output$map <- renderLeaflet({
+    col_name <- as.name(input$type)
+    pal <- colorBin("YlOrRd", log(world[[col_name]]), bins = 9, right=FALSE)
+    leaflet(world) %>% 
+      addTiles() %>% 
+      addPolygons(stroke = TRUE, weight=1, smoothFactor = 0.8, fillOpacity = 1,
+                  fillColor = ~pal(log(world[[col_name]])),
+                  label = ~paste0(name, ": ", formatC(world[[col_name]], big.mark = ",")),
+                  layerId = ~name) %>% 
+      setView(lng = 30, lat = 30, zoom = 03)
+  })
 })

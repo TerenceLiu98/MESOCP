@@ -6,7 +6,9 @@ output: pdf_document
 ---
 
 
-## Web Tools for Fundamental Statistics
+## Modern Elementary Statistics Supplementary materials
+
+![book_cover.jpg](figure/book_cover.jpg)
 
 ## Shiny
 
@@ -14,7 +16,5 @@ output: pdf_document
 
 >Shiny combines the computational power of R with the interactivity of the modern web.
 > From [shiny official website](https://shiny.studio.com)
-
-### Some Examples
 
 
