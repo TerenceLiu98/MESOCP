@@ -262,9 +262,9 @@ shinyServer(function(input, output){
     else if(input$dist == "weibull"){
       withMathJax("Probability Density Distribution: $$p(x) = \\frac{k}{\\lambda} (\\frac{x}{\\lambda})^{k-1} e^{-(x/\\lambda)^{k}}, x \\geq 0$$  $$p(x) = 0,  x < 0$$")
     }
-    })
+  })
   
-## COVID MAP
+  ## COVID MAP
   observeEvent(input$map_shape_click, {
     p <- input$map_shape_click 
     cnty <- p$id
@@ -319,13 +319,17 @@ shinyServer(function(input, output){
   
   output$map <- renderLeaflet({
     col_name <- as.name(input$type)
-    pal <- colorBin("YlOrRd", log(world[[col_name]]), bins = 9, right=FALSE)
-    leaflet(world) %>% 
+    map_data <- world_today[[col_name]] - world_yesterday[[col_name]]
+    pal <- colorBin("YlOrRd", map_data, right=FALSE)
+    leaflet(world_today) %>% 
       addTiles() %>% 
       addPolygons(stroke = TRUE, weight=1, smoothFactor = 0.8, fillOpacity = 1,
-                  fillColor = ~pal(log(world[[col_name]])),
-                  label = ~paste0(name, ": ", formatC(world[[col_name]], big.mark = ",")),
-                  layerId = ~name) %>% 
+                  fillColor = ~pal(map_data),
+                  label = ~paste0(name, ": ", formatC(map_data, big.mark = ",")),
+                  layerId = ~name)  %>%
+      addLegend(position = "bottomright", pal = pal, values = map_data,
+                title = col_name,
+                opacity = 1) %>% 
       setView(lng = 30, lat = 30, zoom = 03)
   })
 })
