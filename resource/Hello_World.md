@@ -6,15 +6,21 @@ output: pdf_document
 ---
 
 
-## Modern Elementary Statistics Supplementary materials
-
-![book_cover.jpg](figure/book_cover.jpg)
-
-## Shiny
-
->Shiny is a `R` package that makes it easy to build interactive web apps straight from R. You can host standalone apps on a webpage or embed them in R Markdown documents or build dashboards. You can also extend your Shiny apps with CSS themes, htmlwidgets, and JavaScript actions.
-
->Shiny combines the computational power of R with the interactivity of the modern web.
-> From [shiny official website](https://shiny.studio.com)
-
-
+<html>
+  <table style="margin-left: auto; margin-right: auto;">
+    <tr>
+      <td style="padding: 5px 10px 5px 5px;">
+        <a href="https://book.douban.com/subject/26915897/"><img src="figure/book_cover.jpg" alt="MES book"></a>
+      </td>
+      <td style="padding: 5px 10px 5px 5px;">
+      <h4> Book information </h4> 
+      <ul>
+        <li> Author: Kai-Tai Fang, Xiao-Ling Peng </li>
+        <li> Press: Higher Education Press </li>
+        <li> Publish date: 2014-11 </li>
+        <li> ISBN: 9787040396744 </li>
+      </ul>
+      </td>
+    </tr>
+  </table>
+</html>

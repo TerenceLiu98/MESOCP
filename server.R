@@ -1,26 +1,22 @@
-library(shiny)
-library(ggplot2)
-library(plotly)
-library(leaflet)
-library(rgeos)
+source("resource/src/libraries.R")
+cities <-read.csv("resource/data/cities.csv")
 
 # Define server logic for random distribution application
-shinyServer(function(input, output){
+server <- shinyServer(function(input, output, session){
+  
+  # Draw Distribution
   output$distribution <- renderUI({
     if(input$DistType == "con"){
       list(
         selectInput("dist", p(strong("Continuous Distributions")),
-                    list("Normal" = "norm",
-                         "Student's t" = "t",
-                         "Beta" = "beta",
-                         "Gamma" = "gamma",
-                         "Cauchy" = "cauchy",
-                         "Chi-Squared" = "chisq",
-                         "Exponential" = "exp",
-                         "F" = "f",
-                         "Log-normal" = "lnorm",
-                         "Uniform" = "unif",
-                         "Weibull" = "weibull"),
+                    list("Normal Distribution" = "norm",
+                         "t Distribution" = "t",
+                         "Beta Distribution" = "beta",
+                         "Gamma Distribution" = "gamma",
+                         "Chi-Squared Distribution" = "chisq",
+                         "Exponential Distribution" = "exp",
+                         "F Distribution" = "f",
+                         "Uniform Distribution" = "unif"),
                     selected = NULL
         )
       )
@@ -28,11 +24,9 @@ shinyServer(function(input, output){
     else if (input$DistType == "dis"){
       list(
         selectInput("dist", p(strong("Discrete Distributions")),
-                    list("Geometric" = "geom",
-                         "Hypergeometric" = "hyper",
-                         "Binomial" = "binom",
-                         "Negative Binomial" = "nbinom",
-                         "Poisson" = "pois"),
+                    list("Binomial Distribution" = "binom",
+                         "Geometric Distribution" = "geom",
+                         "Poisson Distribution" = "pois"),
                     selected = NULL
         )
       )
@@ -228,108 +222,457 @@ shinyServer(function(input, output){
   output$summary <- renderPrint({
     summary(data())})
   
+  
   output$formula <- renderUI({
+    ## Continuous
     if(input$dist == "norm"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\frac{1}{\\sigma\\sqrt{2\\pi}} \\exp\\left( -\\frac{1}{2}\\left(\\frac{x-\\mu}{\\sigma}\\right)^{\\!2}\\,\\right)$"))
+      withMathJax(includeMarkdown("resource/distributions/continuous/Normal.md"))
     }
     else if(input$dist == "t"){
-      withMathJax(helpText("Probability Density Distribution: $t = \\frac{x - \\mu}{s / \\sqrt{n}}$$ $$\\text{where } s^2 = \\frac{1}{n} \\sum_{i=1}^{n} (x_i - \\overline{x})$"))
+      withMathJax(includeMarkdown("resource/distributions/continuous/StudentT.md"))
     }
-    else if(input$dist == "beta"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\frac{x^{\\alpha - 1}(1 - x)^{\\beta - 1}}{B(\\alpha, \\beta)}, \\text{where } B(\\alpha, \\beta) = \\frac{\\Gamma(\\alpha)\\Gamma(\\beta)}{\\Gamma(\\alpha + \\beta)}, \\text{and } \\Gamma \\text{ is the Gamma function$"))
+    else if (input$dist == "beta"){
+      withMathJax(includeMarkdown("resource/distributions/continuous/Beta.md"))
     }
-    else if(input$dist == "gamma"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\frac{x^{\\alpha-1} \\lambda^{\\alpha} e^{-\\lambda x}}{\\Gamma(\\alpha)} = \\frac{x^{\\alpha -1} e^{- \\frac{1}{\\beta}x}}{\\beta^{\\alpha}\\Gamma(\\alpha)}, x >0$"))
+    else if (input$dist == "gamma"){
+      withMathJax(includeMarkdown("resource/distributions/continuous/Gamma.md"))
     }
-    else if(input$dist == "cauchy"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\frac{1}{\\pi \\gamma [1 + (\\frac{x - x_0}{\\gamma})^2]$"))
-    }
-    else if(input$dist == "chiq"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\frac{1}{\\Gamma (\\frac{k}{2})} \\gamma(\\frac{k}{2}$"))
+    else if(input$dist == "chisq"){
+      withMathJax(includeMarkdown("resource/distributions/continuous/Chisquare.md"))
     }
     else if(input$dist == "exp"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\lambda e^{- \\lambda x}$"))
+      withMathJax(includeMarkdown("resource/distributions/continuous/Expnential.md"))
     }
     else if(input$dist == "f"){
-      withMathJax(helpText)("Probability Density Distribution: $p(x) = \\frac{\\sqrt{\\frac{(d_1 x)^{d_1} d_2^{d_2}}{(d_1 x + d_2)^{d_1 + d_2}}}}{x B(\\frac{d_1}{2}, \\frac{d_2}{2})}$")
-    }
-    else if(input$dist == "lnorm"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\frac{1}{x \\sigma \\sqrt{2 \\pi}} exp(- \\frac{[ln(x) - \\mu]^2}{2 \\sigma^2})$"))
+      withMathJax(includeMarkdown("resource/distributions/continuous/Fdistribution.md"))
     }
     else if(input$dist == "unif"){
-      withMathJax(helpText("Probability Density Distribution: $p(x) = \\frac{1}{b-a}$"))
+      withMathJax(includeMarkdown("resource/distributions/continuous/Uniform.md"))
     }
-    else if(input$dist == "weibull"){
-      withMathJax("Probability Density Distribution: $$p(x) = \\frac{k}{\\lambda} (\\frac{x}{\\lambda})^{k-1} e^{-(x/\\lambda)^{k}}, x \\geq 0$$  $$p(x) = 0,  x < 0$$")
+    ## Discrete
+    else if(input$dist == "binom"){
+      withMathJax(includeMarkdown("resource/distributions/discrete/Binomial.md"))
     }
-  })
+    else if(input$dist == "geom"){
+      withMathJax(includeMarkdown("resource/distributions/discrete/Geometric.md"))
+    }
+    else if(input$dist == "pois"){
+      withMathJax(includeMarkdown("resource/distributions/discrete/Poisson.md"))
+    }
+    })
   
-  ## COVID MAP
-  observeEvent(input$map_shape_click, {
-    p <- input$map_shape_click 
-    cnty <- p$id
-    type <- input$type
-    startdate <- input$startdate
-    enddate <- input$enddate
-    if(type == "Confirmed"){
-      plot_data <- conf_ts%>% 
-        filter(Country_Region == cnty, Cases > 0) %>% 
-        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
-      countryname <- cnty
-      plot_data_us <- conf_ts %>%
-        filter(Country_Region == "United States")%>% 
-        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
-    }else if(type == "Deaths"){
-      plot_data <- deaths_ts%>% 
-        filter(Country_Region == cnty, Cases > 0) %>% 
-        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
-      countryname <<- cnty
-      plot_data_us <- deaths_ts %>%
-        filter(Country_Region == "United States")%>% 
-        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
-    }else if(type == "Recovered"){
-      plot_data <- recovered_ts%>% 
-        filter(Country_Region == cnty, Cases > 0) %>% 
-        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
-      countryname <- cnty
-      plot_data_us <- recovered_ts %>%
-        filter(Country_Region == "United States")%>% 
-        mutate(Daily_Cases = Cases - lag(Cases, default = Cases[1]))
+  ## COVID19
+  reflash <- function(){
+    withProgress({
+      incProgress(message = "Querying data from source...")
+      latest_data <- get_latest_data()
+      incProgress(message = "Querying data from source...")
+      global_data <- get_global_data()
+      incProgress(message = "Querying data from source...")
+      historical_data <- get_history_data()
+      incProgress(message = "Querying data from source...")
+      vaccine_data <- get_vaccine_data()
+      incProgress(message = "Querying data from source...")
+      therapeutics_data <- get_therapeutics_data()
+      res = list(lastest=latest_data,
+                 global=global_data,
+                 historical=historical_data,
+                 vaccine=vaccine_data,
+                 therapeutics=therapeutics_data)
+      return(res)
+    })
+    return(res)
+  }
+  res <- reflash()
+  latest_data=res$lastest
+  global_data=res$global
+  historical_data=res$historical
+  vaccine_data=res$vaccine
+  therapeutics_data=res$therapeutics
+  
+  # update country list
+  country_list <- dplyr::filter(latest_data$table, updated == latest_data$time) %>% 
+    arrange(desc(cases)) %>% .$country %>% sort() 
+  updateSelectizeInput(session, 'country', choices = country_list, server = TRUE)
+  
+  t = historical_data$time
+  
+  # update province list
+  observe({
+    province_list <- unique(subset(historical_data$province, country == input$country)$province)
+    if (length(province_list) > 0) {
+      updateSelectInput(session, "province", choices = c("All",province_list))
+    } else {
+      updateSelectInput(session, "province", choices = c("--",province_list))
     }
     
-    plot_data <- subset(plot_data, Date >= startdate & Date <= enddate)
-    plot_data_us <- subset(plot_data_us, Date >= startdate & Date <= enddate)
-    output$country <- renderPlotly({
-      fig <- plot_ly(plot_data, x = ~Date, y = ~Daily_Cases, type = 'scatter', mode = 'lines+markers') %>% 
-        layout(xaxis = list(title = cnty, tickformat = "%d/%m/%y"),
-               yaxis = list(title = "", tickformat = "s"),
-               margin = list(l=0, r=0)) %>% 
-        config(displayModeBar = FALSE, displaylogo = FALSE)
-      fig
-    })
-    output$fig_usa <- renderPlotly({
-      fig_usa <- plot_ly(plot_data_us, x = ~Date, y = ~Daily_Cases, type = 'scatter', mode = 'lines+markers') %>% 
-        layout(xaxis = list(title = "USA", tickformat = "%d/%m/%y"),
-               yaxis = list(title = "", tickformat = "s"),
-               margin = list(l=0, r=0)) %>% 
-        config(displayModeBar = FALSE, displaylogo = FALSE)
-      fig_usa
-    })
-  }) 
-  
-  output$map <- renderLeaflet({
-    col_name <- as.name(input$type)
-    map_data <- world_today[[col_name]] - world_yesterday[[col_name]]
-    pal <- colorBin("YlOrRd", map_data, right=FALSE)
-    leaflet(world_today) %>% 
-      addTiles() %>% 
-      addPolygons(stroke = TRUE, weight=1, smoothFactor = 0.8, fillOpacity = 1,
-                  fillColor = ~pal(map_data),
-                  label = ~paste0(name, ": ", formatC(map_data, big.mark = ",")),
-                  layerId = ~name)  %>%
-      addLegend(position = "bottomright", pal = pal, values = map_data,
-                title = col_name,
-                opacity = 1) %>% 
-      setView(lng = 30, lat = 30, zoom = 03)
   })
+  
+  # update cor_type list
+  observe({
+    cor_type_list <- colnames(latest_data$detail) 
+    cor_type_list <- cor_type_list[!cor_type_list %in% c("updated","country","countryInfo")]
+    updateSelectInput(session, "cor_type1", 
+                      choices = cor_type_list)
+    updateSelectInput(session, "cor_type2", 
+                      choices = cor_type_list[c(2,1,3:length(cor_type_list))])
+  })
+  
+  # update country list2
+  country_list <- unique(historical_data$table$country) %>% sort() 
+  updateSelectizeInput(session, 'country_list2', choices = country_list, server = TRUE)
+  
+  updateDateInput(session, 'date', value = t, max=t)
+  # prepare the table content
+  df <- reactive({
+    if ( input$province == "All" | input$province == "--"  ) {
+      x = subset(historical_data$table, country == input$country)
+    }
+    else {
+      x = subset(historical_data$province, province == input$province)
+    }
+    x = x[,c("date","cases","deaths","recovered")]
+    return(x)
+  })
+  historical_data$table %>%
+    group_by(country) %>%
+    arrange(country,date) %>%
+    mutate(diff = cases -  dplyr::lag(cases, default =  dplyr::first(cases))) -> a
+  # output data table
+  output$data_table = DT::renderDataTable({
+    validate(need(input$country != "", "Loading"))
+    df()
+  },rownames = FALSE )
+  
+  # output header summary 
+  output$summary_confirm <- renderValueBox({
+    validate(need(input$country != "", "Loading"))
+    x = df()
+    valueBox(
+      paste0(x[which(x$date == t),]$cases, " Cases"), t)
+  })
+  
+  output$summary_cure <- renderValueBox({
+    validate(need(input$country != "", "Loading"))
+    x = df()
+    valueBox(
+      paste0(x[which(x$date == t),]$recovered, " Recovered"), t)
+  })
+  
+  output$summary_dead <- renderValueBox({
+    validate(need(input$country != "", "Loading"))
+    x = df()
+    valueBox(
+      paste0(x[which(x$date == t),]$deaths, " Deaths"), t)
+  })
+  
+  # Growth Curve
+  output$line_plot <- renderPlotly({
+    validate(need(input$country != "", "Loading"))
+    x = gather(df(), curve, count, -date)
+    p = ggplot(x, aes(date, log2(count), color = curve, Counts=count, Type=curve )) +
+      geom_point() + geom_line() + xlab(NULL) + ylab("Log2 of count") +
+      scale_color_manual(values=c("#f39c12", "#d81b60", "#000080")) +
+      theme_bw() + 
+      theme(legend.position = "none") +
+      theme(axis.text = element_text(angle = 15, hjust = 1)) +
+      scale_x_date(date_labels = "%Y-%m-%d")
+    ggplotly(p,tooltip=c("x","Counts","Type"))
+  })
+  
+  # data download
+  
+  output$dataDownload <- downloadHandler(
+    filename = function() {paste0("coronavirus_histrical_",t,".tsv")},
+    content = function(file) {
+      # issues with Chinese characters solved
+      # http://kevinushey.github.io/blog/2018/02/21/string-encoding-and-r/
+      con <- file(file, open = "w+", encoding = "native.enc")
+      df <- df()
+      df$country = input$country
+      df$province = input$province
+      writeLines( paste( colnames(df), collapse = "\t"), con = con, useBytes = TRUE)
+      for(i in 1:nrow( df) )
+        #write line by line 
+        writeLines( paste( as.character(df[i,]), collapse = "\t"), con = con, useBytes = TRUE)
+      close(con)
+    }
+  )
+  
+  # bottom panel plots
+  
+  
+  output$Global_plot <- renderPlotly({
+    #validate(need(input$type != "", "Loading"))
+    
+    geoINFO = data.frame(
+      country = latest_data$detail$country, 
+      ISO3 = latest_data$detail$countryInfo$iso3,
+      long = latest_data$detail$countryInfo$long,
+      lat = latest_data$detail$countryInfo$lat,
+      population = latest_data$detail$population
+    )
+    df = subset(historical_data$table ,date == input$date)
+    df2 = merge(df, geoINFO, by='country')
+    df_last = subset(historical_data$table, date == input$date - 1)
+    df2_last = merge(df_last, geoINFO, by='country')
+    df2$NewCases <- df2$cases - df2_last$cases
+    df2$rates <- df2$cases / df2$population
+    
+    g <- list(
+      scope = 'world',
+      showland = TRUE,
+      showcountries = TRUE,
+      landcolor = toRGB("gray95"),
+      subunitwidth = 1,
+      countrywidth = 1,
+      subunitcolor = toRGB("white"),
+      countrycolor = toRGB("black")
+    )
+    
+    # specify map projection/options
+    l <- list(color = toRGB("grey95"), width = 0.5)
+    g2 <- list(
+      showframe = TRUE,
+      showcoastlines = TRUE,
+      projection = list(type = 'Mercator')
+    )
+    
+    fig <- plot_geo(df2,
+                    hoverinfo = 'text',
+                    text = ~paste(
+                      '</br> Region: ', country,
+                      '</br> Cases: ', cases,
+                      '</br> Deaths: ', deaths,
+                      '</br> Population: ', population,
+                      '</br> Cases/Poluation:', round(rates, 5),
+                      '</br> New cases:', NewCases,
+                      '</br> </br> Date: ', date 
+                    )
+    )
+    fig <- fig %>% add_trace(
+      #        z = as.formula(paste0("~`", input$type, "`")) , 
+      #        color = as.formula(paste0("~`", input$type, "`")), colors = 'Reds', 
+      #        hoverinfo= as.formula(paste0("~`", input$type, "`")),
+      z = ~cases,
+      color = ~cases,
+      colors = 'Reds',
+      locations = ~ISO3
+    )
+    fig <- fig %>% colorbar(title = "cases" )
+    fig <- fig %>% plotly::layout(
+      title = paste0('Covid-19 World Map: ', input$date),
+      geo = g
+    ) 
+  })
+  
+  output$vaccine_table = DT::renderDataTable({
+    validate(need( exists("vaccine_data"), "Loading"))
+    vaccine_data$table[,!colnames(vaccine_data$table) %in% "details"]
+  },rownames = FALSE ) 
+  
+  output$therapeutics_table = DT::renderDataTable({
+    validate(need( exists("therapeutics_data"), "Loading"))
+    therapeutics_data$table[,!colnames(therapeutics_data$table) %in% c("details")]
+  },rownames = FALSE ) 
+  
+  output$Summary_table1 = DT::renderDataTable({
+    validate(need( exists("vaccine_data"), "Loading"))
+    therapeutics_data$summary
+  },rownames = FALSE ) 
+  output$Summary_table2 = DT::renderDataTable({
+    validate(need( exists("therapeutics_data"), "Loading"))
+    vaccine_data$summary
+  },rownames = FALSE ) 
+  
+  output$active_plot <- renderPlotly({
+    validate(need( exists("latest_data"), "Loading"))
+    df = latest_data$detail
+    df = df[order(df$activePerOneMillion,decreasing = T),] 
+    p <- ggplot(df, aes(country,activePerOneMillion)) + 
+      geom_col(color="firebrick")  + scale_x_discrete(limits= df$country) +
+      geom_hline(yintercept = mean(df$activePerOneMillion)) + 
+      theme_minimal() + ylab("Active cases per million population") +
+      theme(  axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              legend.position = 'none')
+    ggplotly(p, tooltip = c("country","activePerOneMillion"))
+  })
+  
+  output$Mortality_plot <- renderPlotly({
+    validate(need( exists("latest_data"), "Loading"))
+    df = latest_data$detail
+    df = df[order(df$deathsPerOneMillion,decreasing = T),] 
+    p <- ggplot(df, aes(country,deathsPerOneMillion)) + 
+      geom_col(color="firebrick")  + scale_x_discrete(limits= df$country) +
+      geom_hline(yintercept = mean(df$deathsPerOneMillion)) + 
+      theme_minimal() + ylab('Mortality per million population') +
+      theme(  axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              legend.position = 'none')
+    ggplotly(p, tooltip = c("country","deathsPerOneMillion"))
+  })
+  
+  # cor_plot
+  output$cor_plot <- renderPlotly({
+    validate(need( exists("latest_data"), "Loading"))
+    df = latest_data$detail 
+    x = input$cor_type1
+    y = input$cor_type2
+    p = ggplot(df, aes_string(x,y, color="country")) + 
+      geom_jitter() +  guides(color = FALSE )   +
+      theme_minimal() +  
+      labs(subtitle="The size of the dots in the graph corresponds to the number of patients diagnosed today") +
+      theme(  axis.text=element_blank(),
+              axis.ticks=element_blank(),
+              legend.position = 'none' )    
+  })
+  # wave_plot
+  output$wave_plot <- renderPlotly({
+    validate(need(input$country_list2, "Pleas choose some countries"))
+    tmp = subset(a, country %in% input$country_list2)
+    tmp$Log2Increase = log2(tmp$diff + 1) 
+    tmp$Increase = tmp$diff
+    p <- ggplot(tmp,aes(date, Log2Increase,color=country, Increase = Increase)) + geom_line()  +
+      labs(y="Daily increase cases(log2 scale)") + 
+      theme(axis.text = element_text(angle = 15, hjust = 1)) +
+      scale_x_date(date_labels = "%Y-%m-%d") + theme_minimal()
+    ggplotly(p, tooltip = c("country","date", "Increase"))
+  })
+  ### reflash button
+  observeEvent(input$reflashButton, {
+    res <- reflash()
+    latest_data=res$lastest
+    global_data=res$global
+    historical_data=res$historical
+    vaccine_data=res$vaccine
+    therapeutics_data=res$therapeutics
+  })
+  
+  ## Linear Regression
+    vals <- reactiveValues(
+      keeprows = rep(TRUE, nrow(cities))
+    )
+    vals2 <- reactiveValues(
+      keeprows2 = rep(TRUE, nrow(cities))
+    )
+
+    output$plot1 <- renderPlot({
+      if (input$lm_x == "x2"){
+      # Plot the kept and excluded points as two separate data sets
+        keep    <- cities[ vals$keeprows, , drop = FALSE]
+        exclude <- cities[!vals$keeprows, , drop = FALSE]
+  
+        ggplot(keep, aes(planing, GDP)) + geom_point() +
+          geom_smooth(method = lm, fullrange = TRUE, color = "blue") +
+          geom_point(data = exclude, shape = 2, fill = "red", color = "red", alpha = 0.75) +
+          coord_cartesian(xlim = c(0, 50), ylim = c(500,20000))  +
+          geom_text(aes(label = keep$city), family="Arial", size = 3)
+      } else if(input$lm_x == "x1"){
+        keep    <- cities[ vals$keeprows, , drop = FALSE]
+        exclude <- cities[!vals$keeprows, , drop = FALSE]
+        
+        ggplot(keep, aes(planing, completed)) + geom_point() +
+          geom_smooth(method = lm, fullrange = TRUE, color = "blue") +
+          geom_point(data = exclude, shape = 2, fill = "red", color = "red", alpha = 0.75) +
+          coord_cartesian(xlim = c(0, 50), ylim = c(0,60))  +
+          geom_text(aes(label = keep$city), family="Arial", size = 3)
+      }
+    })
+
+    output$lm_summary <- renderPrint({
+      if (input$lm_x == "x2"){
+        keep <- cities[ vals$keeprows, , drop = FALSE]
+        fit <- with(keep, lm(planing ~ GDP))
+      } else if (input$lm_x == "x1"){
+        keep <- cities[ vals$keeprows, , drop = FALSE]
+        fit <- with(keep, lm(planing ~ completed))
+      }
+      summary(fit)
+    })
+    output$lm_plot <- renderPlot({
+      if (input$lm_x == "x2"){
+        keep <- cities[ vals$keeprows, , drop = FALSE]
+        fit <- with(keep, lm(planing ~ GDP))
+      } else if (input$lm_x == "x1"){
+        keep <- cities[ vals$keeprows, , drop = FALSE]
+        fit <- with(keep, lm(planing ~ completed))
+      }
+      layout(matrix(1:4, ncol = 2))
+      plot(fit)
+    })
+
+    # Toggle points that are clicked
+    observeEvent(input$plot1_click, {
+      res <- nearPoints(cities, input$plot1_click, allRows = TRUE)})
+    # Toggle points that are brushed
+    observeEvent(input$exclude_toggle, {
+      res <- brushedPoints(cities, input$plot1_brush, allRows = TRUE)
+
+      vals$keeprows <- xor(vals$keeprows, res$selected_)
+    })
+    # Reset all
+    observeEvent(input$exclude_reset, {
+      vals$keeprows <- rep(TRUE, nrow(cities))
+    })
+  
+  
+  mu <- 31.5
+  std <- 0.8
+  ci_seq <- seq(27.5, 35.5, length.out = 100)
+  ## Confidence Interval 
+  # ci_data <- reactive({
+  #   data.frame(x = ci_seq,
+  #              y = dnorm(ci_seq, mean = mu, sd=std),
+  #              e = dnorm(ci_seq, mean=input$input$sample_mean, sd=std)
+  #     )})
+
+  output$ci_plot <- renderPlotly({
+    mu <- 31.5
+    std <- 0.8
+    ci_seq <- seq(27.5, 35.5, length.out=100)
+    ci_data <- data.frame(x = ci_seq, 
+                          y = dnorm(ci_seq, mean = mu, sd=std))
+    sigma <- std / sqrt(input$sample_size)
+    two_sigma <- 2 * round(sigma, 2)
+    ggplot(ci_data) +
+      geom_line(aes(x=x, y=y)) +
+      geom_vline(xintercept = mu, color="sky blue",linetype="dashed") +
+      geom_ribbon(data = subset(ci_data, x > (31.5 - two_sigma) & x < (31.5 + two_sigma)),
+                  aes(x=x, ymin=0, ymax=y),
+                  fill = "sky blue", alpha = .3) +
+      ## population mean
+      annotate(geom="text", x=(mu - two_sigma), y= -0.01, label=paste0("[ ", (mu - two_sigma)),
+               color="sky blue") + 
+      annotate(geom="text", x=((mu + two_sigma) + (mu - two_sigma))/2, y= -0.01, label=paste0(" ---- ", mu, " ---- "),
+               color="sky blue") + 
+      annotate(geom="text", x=(mu + two_sigma), y= -0.01, label=paste0((mu + two_sigma), " ]"),
+               color="sky blue") + 
+      ## sample mean 1
+      geom_segment(aes(x=input$sample_mean_1, y = -0.06, xend=input$sample_mean_1, yend=-0.02), color="red", linetype=2) + 
+      annotate(geom="text", x=(input$sample_mean_1 - two_sigma), y= -0.04, label=paste0("[ ", (input$sample_mean_1 - two_sigma)),
+               color="red") + 
+      annotate(geom="text", x=((input$sample_mean_1 + two_sigma) + (input$sample_mean_1 - two_sigma))/2, y= -0.04, label=paste0(" ---- ", input$sample_mean_1, " ---- "),
+               color="red") + 
+      annotate(geom="text", x=(input$sample_mean_1 + two_sigma), y= -0.04, label=paste0((input$sample_mean_1 + two_sigma), " ]"),
+               color="red") + 
+      ## sample mean 2
+      geom_segment(aes(x=input$sample_mean_2, y = -0.10, xend=input$sample_mean_2, yend=-0.06), color="chocolate1", linetype=2) + 
+      annotate(geom="text", x=(input$sample_mean_2 - two_sigma), y= -0.08, label=paste0("[ ", (input$sample_mean_2 - two_sigma)),
+               color="chocolate1") + 
+      annotate(geom="text", x=((input$sample_mean_2 + two_sigma) + (input$sample_mean_2 - two_sigma))/2, y= -0.08, label=paste0(" ---- ", input$sample_mean_2, " ---- "),
+               color="chocolate1") + 
+      annotate(geom="text", x=(input$sample_mean_2 + two_sigma), y= -0.08, label=paste0((input$sample_mean_2 + two_sigma), " ]"),
+               color="chocolate1") + 
+      ## sample mean 3
+      geom_segment(aes(x=input$sample_mean_3, y = -0.14, xend=input$sample_mean_3, yend=-0.10), color="darkgreen", linetype=2) + 
+      annotate(geom="text", x=(input$sample_mean_3 - two_sigma), y= -0.12, label=paste0("[ ", (input$sample_mean_3 - two_sigma)),
+               color="darkgreen") + 
+      annotate(geom="text", x=((input$sample_mean_3 + two_sigma) + (input$sample_mean_3 - two_sigma))/2, y= -0.12, label=paste0(" ---- ", input$sample_mean_3, " ---- "),
+               color="darkgreen") + 
+      annotate(geom="text", x=(input$sample_mean_3 + two_sigma), y= -0.12, label=paste0((input$sample_mean_3 + two_sigma), " ]"),
+               color="darkgreen") + 
+      theme_bw()
+  })
+  
 })
