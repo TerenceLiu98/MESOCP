@@ -33,7 +33,7 @@ ui <- navbarPage("Mordern Elementary Statistics",
                       ),
                       
                       wellPanel(
-                        numericInput("seed",p(strong("Set a seed for reproduciblity:")), 42)
+                        numericInput("seed",p(strong("Set a seed for reproduciblity:")), 42),
                       ),
                       wellPanel(
                         selectInput(inputId = "pdf_cdf",
@@ -41,18 +41,17 @@ ui <- navbarPage("Mordern Elementary Statistics",
                                     choices = c("PDF/PMF" = "PDF", "CDF/CMF" = "CDF"))
                       ),
                       wellPanel(
-                        sliderInput("n", 
-                                    p(strong("Number of observations:")), 
+                        sliderInput("n",
+                                    p(strong("Number of observations:")),
                                     value = 100,
-                                    min = 1, 
+                                    min = 1,
                                     max = 500)
                       ),
                       wellPanel(
                         
                         p(strong("Parameters:")),
                         uiOutput("parameter"))),
-                    # Show a tabset that includes a plot, summary, and table view
-                    # of the generated distribution
+                    # Show a tabset that includes a plot, summary, and table view of the generated distribution
                     mainPanel(
                       width = 8,
                       tags$h4("Plot"),
@@ -198,7 +197,7 @@ ui <- navbarPage("Mordern Elementary Statistics",
                                            id = "plot1_brush"
                                          )
                                    ),
-                              plotOutput("lm_plot")
+                              plotOutput("lm_plot", height=600, width=1200)
                           ))
                          )
                 ),
@@ -207,15 +206,31 @@ ui <- navbarPage("Mordern Elementary Statistics",
                          sidebarLayout(
                          sidebarPanel(
                            width = 4,
-                           numericInput("sample_size", label= h4("Sample size"), value = 5, min = 1, max = 10, step = 1),
-                           numericInput("sample_mean_1", label = h4("Sample mean 1"), value = 31.3, min = 27, max = 35, step=0.01),
-                           numericInput("sample_mean_2", label = h4("Sample mean 2"), value = 31.7, min = 27, max = 35, step=0.01),
-                           numericInput("sample_mean_3", label = h4("Sample mean 3"), value = 32.5, min = 27, max = 35, step=0.01)
+                           h5("Population mean estimation with known standard deviation (plot 1)"),
+                           numericInput("sample_size", label= p("Sample size"), value = 5, min = 1, max = 10, step = 1),
+                           numericInput("sample_mean_1", label = p("Sample mean 1"), value = 31.3, min = 27, max = 35, step=0.01),
+                           numericInput("sample_mean_2", label = p("Sample mean 2"), value = 31.7, min = 27, max = 35, step=0.01),
+                           numericInput("sample_mean_3", label = p("Sample mean 3"), value = 32.5, min = 27, max = 35, step=0.01),
+                           #hr(),
+                           # h5("Population mean estimation with CLT (plot 2)"),
+                           # selectInput("ci_dist", p(strong("Distribution")),
+                           #             list("Normal Distribution" = "norm",
+                           #                  "Exponential Distribution" = "exp")),
+                           # numericInput("sample_size_2", label= p("Sample size (you can try 5, 30, 50, 100, 1000 and find the differences)"), 
+                           #              value = 30, min = 1, max = 1000, step = 1),
+                           # sliderInput("alpha", label= p("Confidence Level"), value = 0.5, min = 0.1, max = 1),
                           ),
                          mainPanel(
                            width = 8,
                            fluidRow(
-                           plotlyOutput("ci_plot", height = 500, width = 1200))
+                              plotlyOutput("ci_plot", height = 400, width = 1200),
+                              br(),
+                              withMathJax(includeMarkdown("resource/help/estimation_with_sigma.md")),
+                              #hr(),
+                              #plotlyOutput("ci_plot_2", height = 400, width = 1200),
+                              #withMathJax(includeMarkdown("resource/help/estimation_with_CLT.md")),
+                           )
+                           
                          )))
                 
 )

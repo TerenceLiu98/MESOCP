@@ -675,4 +675,39 @@ server <- shinyServer(function(input, output, session){
       theme_bw()
   })
   
+  output$ci_plot_2 <- renderPlotly({
+    x <- rnorm(seq(-3, 3, length.out=input$sample_size_2), mean=0, sd=1)
+    y <- rep(0.05, input$sample_size_2)
+    sample_df <- data.frame(x = x, y = y)
+    stand_norm_x <- seq(-3, 3, length.out=2000)
+    x1 <- CI(x, ci=input$alpha)
+    ci_data_2 <- data.frame(x = stand_norm_x, 
+                          y = dnorm(stand_norm_x, mean = 0, sd=1))
+    class(x1[1])
+    dat<-with(density(x),data.frame(x,y))
+    dat1<-dat[dat$x>x1[3]&dat$x<x1[1],]
+    ggplot(ci_data_2)+
+      geom_line(aes(x=x, y=y))+
+      geom_vline(xintercept = 0, color = "sky blue") + 
+      geom_vline(xintercept = x1[1],lty="dashed", color="red")+
+      geom_vline(xintercept = x1[3],lty="dashed", color="red")+
+      geom_vline(xintercept = x1[2],lty="dashed")+
+      annotate(geom="text", x=-0.1, y= 0.1, label=paste0("population mean:"),
+               color="sky blue") +
+      annotate(geom="text", x=-0.1, y= 0.07, label=paste0("0"),
+               color="sky blue") +
+      annotate(geom="text", x=x1[3] - 1, y= 0, label=paste0("lower bound: "),
+               color="red") +
+      annotate(geom="text", x=x1[3] - 1, y= -0.03, label=paste0(round(x1[3], 2)),
+               color="red") + 
+      annotate(geom="text", x=x1[1] + 1, y= 0, label=paste0("upper bound: "),
+               color="red") +
+      annotate(geom="text", x=x1[1] + 1, y= -0.03, label=paste0(round(x1[1], 2)),
+               color="red") + 
+      geom_point(data = sample_df, 
+                 mapping = aes(x = x, y = y), colour = "red", size = 1) + 
+      theme_bw()
+  })
+  
+  
 })

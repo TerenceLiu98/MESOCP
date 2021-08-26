@@ -14,6 +14,7 @@ library(tidyr)
 library(DT)
 library(shinydashboard)
 library(dplyr)
+library(Rmisc)
 
 get_latest_data <- getFromNamespace("get_latest_data", "nCov2019")
 get_global_data <- getFromNamespace("get_global_data", "nCov2019")
