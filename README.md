@@ -5,4 +5,4 @@ A online statistics teaching assisted platform, Proudly powered by `R` and [`shi
 
 > Code of [SETE2021 #21](https://sete2021.uic.edu.cn/index.htm):
 > 
-> Title: Online Statistics Teaching-assisted Platform with Interactive Web Applications using  R Shiny
+> citation: LIU, J., Peng, X, & DENG, Y. (2021). Online Statistics Teaching-assisted Platform with Interactive Web Applications using R Shiny. (accepted by) The 6th International Symposium on emerging Technologies for Education
