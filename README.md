@@ -1,5 +1,7 @@
 # MESOCP: Modern Elementary Statistics Online Computing Platform
 
+![R](https://img.shields.io/badge/R-V4.1-green)
+[![DOI](https://zenodo.org/badge/443600562.svg)](https://zenodo.org/badge/latestdoi/443600562)
 
 A online statistics teaching assisted platform, Proudly powered by `R` and [`shiny`](https://shiny.rstudio.com/) 
 
