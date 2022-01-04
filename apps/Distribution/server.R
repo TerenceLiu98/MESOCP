@@ -35,8 +35,8 @@ shinyServer(function(input, output, session){
     output$parameter <- renderUI({
         if (input$dist == "norm"){
             list(
-                numericInput("mean", "mean", 0),
-                numericInput("std", "std",1)
+                numericInput("mean", "\\(\\mu \\)", 0),
+                numericInput("std", "\\(\\sigma \\)",1)
             )
         } else if (input$dist == "t"){
             list(
@@ -88,36 +88,34 @@ shinyServer(function(input, output, session){
         }
     })
     
+    output$probability_slider <- renderUI({
+        sliderInput("probarange", label="", min = input$plot_slider[1], max = input$plot_slider[2], step = 0.01, value = c(-2, 2))
+    })
     
-    # Reactive expression to generate the requested distribution. This is 
-    # called whenever the inputs change. The renderers defined 
-    # below then all use the value computed from this expression
     data <- reactive({  
-        
         set.seed(input$seed)
-        
         # PDF
         if (input$pdf_cdf == "PDF"){
             if(input$dist == "norm"){
-                x = seq(-10, 10, 0.01)
+                x = seq(-100, 100, 0.01)
                 data.frame(x=x, pdf=dnorm(x, input$mean, input$std))
             } else if (input$dist == "t"){
-                x = seq(-10, 10, 0.01)
+                x = seq(-100, 100, 0.01)
                 data.frame(x=x, pdf=dt(x, input$df))
             } else if (input$dist == "beta"){
-                x = seq(0, 1, 0.001)
+                x = seq(0, 100, 0.001)
                 data.frame(x=x, pdf=dbeta(x, input$shape1, input$shape2))
             } else if (input$dist == "gamma"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 100, 0.01)
                 data.frame(x=x, pdf=dgamma(x, input$shape, input$rate))
             } else if (input$dist == "chisq"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 100, 0.01)
                 data.frame(x=x, pdf=dchisq(x, df=input$df))
             } else if (input$dist == "exp"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 100, 0.01)
                 data.frame(x=x, pdf=dexp(x, rate=input$rate))
             } else if (input$dist == "f"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 100, 0.01)
                 data.frame(x=x, pdf=df(x, input$df1, input$df2))
             } else if (input$dist == "unif"){
                 x = seq(input$min, input$max, 0.01)
@@ -138,28 +136,28 @@ shinyServer(function(input, output, session){
         # CDF
         else if (input$pdf_cdf == "CDF"){
             if(input$dist == "norm"){
-                x = seq(-10, 10, 0.01)
+                x = seq(-10, 10, 0.05)
                 data.frame(x=x, pdf=pnorm(x, input$mean, input$std))
             } else if (input$dist == "t"){
-                x = seq(-10, 10, 0.01)
+                x = seq(-10, 10, 0.05)
                 data.frame(x=x, pdf=pt(x, input$df))
             } else if (input$dist == "beta"){
-                x = seq(0, 1, 0.001)
+                x = seq(0, 1, 0.005)
                 data.frame(x=x, pdf=pbeta(x, input$shape1, input$shape2))
             } else if (input$dist == "gamma"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 10, 0.05)
                 data.frame(x=x, pdf=pgamma(x, input$shape, input$rate))
             } else if (input$dist == "chisq"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 10, 0.05)
                 data.frame(x=x, pdf=pchisq(x, df=input$df))
             } else if (input$dist == "exp"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 10, 0.05)
                 data.frame(x=x, pdf=pexp(x, rate=input$rate))
             } else if (input$dist == "f"){
-                x = seq(0, 10, 0.01)
+                x = seq(0, 10, 0.05)
                 data.frame(x=x, pdf=pf(x, input$df1, input$df2))
             } else if (input$dist == "unif"){
-                x = seq(input$min, input$max, 0.01)
+                x = seq(input$min, input$max, 0.05)
                 data.frame(x=x, pdf=punif(x, input$min, input$max))
             }
             else if (input$dist == "binom"){
@@ -175,17 +173,58 @@ shinyServer(function(input, output, session){
             
         }
     })
+
+    proba_data <- reactive({  
+        # PDF
+        if (input$pdf_cdf == "PDF"){
+            if(input$dist == "norm"){
+                x = seq(input$probarange[1], input$probarange[2], 0.02)
+                data.frame(x_2=x, pdf_2=dnorm(x, input$mean, input$std))
+            } else if (input$dist == "t"){
+                x = seq(input$probarange[1], input$probarange[2], 0.02)
+                data.frame(x_2=x, pdf_2=dt(x, input$df))
+            }
+        }
+    })
     
-    # Generate a plot of the data
+    output$probability <- renderUI(
+        if (input$dist == "norm"){
+            #validate(need(input$probarange))
+            withMathJax(paste0("$$P(", input$probarange[1], "\\leq x \\leq ", input$probarange[2], ") = ", 
+                               round(pnorm(input$probarange[2], input$mean, input$std) - pnorm(input$probarange[1], input$mean, input$std), 3), "$$"))
+        }
+        else if (input$dist == "t"){
+            withMathJax(paste0("$$P(", input$probarange[1], "\\leq x \\leq ", input$probarange[2], ") = ", 
+                               round(pt(input$probarange[2], input$df) - pt(input$probarange[1], input$df), 3), "$$"))
+        }
+    )
+    
+    
+    # Visualization
     output$plot <- renderPlotly(
         if (input$pdf_cdf == "PDF"){
             if (input$DistType == "con"){
-                {g<-ggplot(data=data(), aes(x=x, y = pdf)) + geom_bar(stat = "identity", col = "steelblue", fill="steelblue") + 
-                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Density") + xlim(input$plot_slider[1], input$plot_slider[2]) + theme_minimal()
+                #validate(need(data()), need(proba_data()))
+                {g<-ggplot(data=data(), aes(x=x, y = pdf)) + 
+                    geom_line() +
+                    geom_segment(aes(x=input$probarange[1],xend=input$probarange[2],y=max(data()$pdf)/2,yend=max(data()$pdf)/2)) + 
+                    geom_vline(xintercept=c(input$probarange[1], input$probarange[2]), linetype = "longdash") +
+                    geom_bar(stat = "identity", data = proba_data(), aes(x=x_2, y=pdf_2, col = "red", fill="red"), alpha = 1) + 
+                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Density") + xlim(input$plot_slider[1], input$plot_slider[2]) + 
+                    theme(legend.position="none", 
+                          plot.title = element_text(size=12, hjust = 1.0), 
+                          legend.text = element_text(size=30),
+                          axis.text.x = element_text(size=12, hjust=1.0),
+                          axis.text.y = element_text(size=12, hjust=1.0))
                 ggplotly(g)}
             } else if (input$DistType == "dis"){
                 {g<-ggplot(data=data(), aes(x = x, y = pdf)) + geom_bar(stat = "identity", col = "steelblue", fill="steelblue") + 
-                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Density") + xlim(input$plot_slider[1], input$plot_slider[2]) + theme_minimal()
+                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Density") + xlim(input$plot_slider[1], input$plot_slider[2]) + 
+                    theme(legend.position="none", 
+                          plot.title = element_text(size=12, hjust = 1.0), 
+                          legend.text = element_text(size=30),
+                          axis.text.x = element_text(size=12, hjust=1.0),
+                          axis.text.y = element_text(size=12, hjust=1.0))
                 ggplotly(g)}
             }
         }
@@ -193,11 +232,21 @@ shinyServer(function(input, output, session){
         else if(input$pdf_cdf == "CDF"){
             if (input$DistType == "con"){
                 {g<-ggplot(data=data(), aes(x=x, y = pdf)) + geom_bar(stat = "identity", col = "steelblue", fill="steelblue") + 
-                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Density") + xlim(input$plot_slider[1], input$plot_slider[2]) + theme_minimal()
+                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Cumulative Probability") + xlim(input$plot_slider[1], input$plot_slider[2]) + 
+                    theme(legend.position="none", 
+                          plot.title = element_text(size=12, hjust = 1.0), 
+                          legend.text = element_text(size=30),
+                          axis.text.x = element_text(size=12, hjust=1.0),
+                          axis.text.y = element_text(size=12, hjust=1.0))
                 ggplotly(g)}
             } else if (input$DistType == "dis"){
                 {g<-ggplot(data=data(), aes(x = x, y = pdf)) + geom_bar(stat = "identity", col = "steelblue", fill="steelblue") + 
-                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Density") + xlim(input$plot_slider[1], input$plot_slider[2]) + theme_minimal()
+                    scale_y_continuous(expand = c(0.01, 0)) + xlab("x") + ylab("Cumulative Probability") + xlim(input$plot_slider[1], input$plot_slider[2]) + 
+                    theme(legend.position="none", 
+                          plot.title = element_text(size=12, hjust = 1.0), 
+                          legend.text = element_text(size=30),
+                          axis.text.x = element_text(size=12, hjust=1.0),
+                          axis.text.y = element_text(size=12, hjust=1.0))
                 ggplotly(g)}
             }
             }
@@ -206,8 +255,8 @@ shinyServer(function(input, output, session){
     #     main=paste("random generation for the", dist, "distribution", sep=" "))
     
     #Generate a summary of the data
-    output$summary <- renderPrint({
-        summary(data())})
+    # output$summary <- renderPrint({
+    #     summary(data())})
     
     
     output$formula <- renderUI({
@@ -246,6 +295,9 @@ shinyServer(function(input, output, session){
         else if(input$dist == "pois"){
             withMathJax(includeMarkdown("resource/distributions/discrete/Poisson.md"))
         }
+    })
+    observeEvent(input$disconnect, {
+        session$close()
     })
     
 })
