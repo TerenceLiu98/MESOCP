@@ -25,16 +25,20 @@ shinyServer(function(input, output, session){
         else if(input$dataset == "random"){
             fluidRow(
                 column(width = 4,
-                       div(style = "font-size:15px;",numericInput("anova_size1", label=("size of group 1"), value=5, min=5, max=100, step = 1)),
-                       div(style = "font-size:15px;",numericInput("anova_size2", label=("size of group 2"), value=5, min=5, max=100, step = 1)),
-                       div(style = "font-size:15px;",numericInput("anova_size3", label=("size of group 3"), value=5, min=5, max=100, step = 1))),
+                       div(id='anova_textinput_1', style = "font-size:15px;",numericInput("anova_size1", label=("size of group 1"), value=5, min=5, max=100, step = 1),
+                           tags$style(type="text/css", "#anova_textinput_1 {color: #FF7F0E; font-weight: 500;}")),
+                       div(id='anova_textinput_2', style = "font-size:15px;",numericInput("anova_size2", label=("size of group 2"), value=5, min=5, max=100, step = 1),
+                           tags$style(type="text/css", "#anova_textinput_2 {color: #2CA02C; font-weight: 500;}")),
+                       div(id='anova_textinput_3', style = "font-size:15px;",numericInput("anova_size3", label=("size of group 3"), value=5, min=5, max=100, step = 1),
+                           tags$style(type="text/css", "#anova_textinput_3 {color: #D52728; font-weight: 500;}"))),
                 column(width = 4, 
-                       div(style = "font-size:15px;",numericInput("anova_mu1", label=("mean of group 1"), value=1, min=0, max=10, step = 1)),
-                       div(style = "font-size:15px;",numericInput("anova_mu2", label=("mean of group 2"), value=2, min=0, max=10, step = 1)),
-                       div(style = "font-size:15px;",numericInput("anova_mu3", label=("mean of group 3"), value=3, min=0, max=10, step = 1))),
+                       div(id='anova_textinput_1', style = "font-size:15px;",numericInput("anova_mu1", label=("mean of group 1"), value=1, min=0, max=10, step = 1)),
+                       div(id='anova_textinput_2', style = "font-size:15px;",numericInput("anova_mu2", label=("mean of group 2"), value=2, min=0, max=10, step = 1)),
+                       div(id='anova_textinput_3', style = "font-size:15px;",numericInput("anova_mu3", label=("mean of group 3"), value=3, min=0, max=10, step = 1))),
                 hr(),
                 column(width = 4,
-                       div(style = "font-size:15px;",numericInput("anova_sigma", label=("total sigma"), value=1, min=-10, max=10, step=0.01))),
+                       div(id='anova_textinput_4', style = "font-size:15px;",numericInput("anova_sigma", label=("total sigma"), value=1, min=-10, max=10, step=0.01),
+                           tags$style(type="text/css", "#anova_textinput_4 {font-weight: 500;}"))),
                 column(width = 12,
                        div(style = "font-size:15px;",actionButton("anovarun", label=("Run"), icon("paper-plane"), 
                                                                   style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))))
@@ -78,35 +82,57 @@ shinyServer(function(input, output, session){
                 need(input$anova_mu3, "Please select a mean of anova group 3"),
                 need(input$anova_sigma, "Please select a sigma of anova")
             )
-            anova_size1 = input$anova_size1; anova_size2 = input$anova_size2; anova_size3 = input$anova_size3;
-            anova_mu1 = input$anova_mu1; anova_mu2 = input$anova_mu2; anova_mu3 = input$anova_mu3; anova_sigma = input$anova_sigma;
-            flag = TRUE
-            while (flag == TRUE){
-                tmp_1 = rnorm1(anova_size1, anova_mu1, anova_sigma)
-                tmp_2 = rnorm2(anova_size2, anova_mu2, anova_sigma)
-                tmp_3 = rnorm3(anova_size3, anova_mu3, anova_sigma)
-                if (abs(mean(tmp_1) - anova_mu1) < 0.1 & 
-                    abs(mean(tmp_2) - anova_mu2) < 0.1 & 
-                    abs(mean(tmp_3) - anova_mu3) < 0.1){
-                    flag <- FALSE
+            if (input$data_generate == "random"){
+                anova_size1 = input$anova_size1; anova_size2 = input$anova_size2; anova_size3 = input$anova_size3;
+                anova_mu1 = input$anova_mu1; anova_mu2 = input$anova_mu2; anova_mu3 = input$anova_mu3; anova_sigma = input$anova_sigma;
+                flag = TRUE
+                while (flag == TRUE){
+                    tmp_1 = rnorm1(anova_size1, anova_mu1, anova_sigma)
+                    tmp_2 = rnorm2(anova_size2, anova_mu2, anova_sigma)
+                    tmp_3 = rnorm3(anova_size3, anova_mu3, anova_sigma)
+                    if (abs(mean(tmp_1) - anova_mu1) < 0.1 & 
+                        abs(mean(tmp_2) - anova_mu2) < 0.1 & 
+                        abs(mean(tmp_3) - anova_mu3) < 0.1){
+                        flag <- FALSE
+                    }
                 }
+                anova_data1 = tmp_1
+                anova_data2 = tmp_2
+                anova_data3 = tmp_3
+                y = c(anova_data1, anova_data2, anova_data3)
+                group = c(rep(sprintf("group %s", 1), each = anova_size1),
+                          rep(sprintf("group %s", 2), each = anova_size2),
+                          rep(sprintf("group %s", 3), each = anova_size3))
+                data.frame(datapoint = y, group = group)}
+            
+            else if (input$data_generate == "rps"){
+                anova_size1 = input$anova_size1; anova_size2 = input$anova_size2; anova_size3 = input$anova_size3;
+                anova_mu1 = input$anova_mu1; anova_mu2 = input$anova_mu2; anova_mu3 = input$anova_mu3; anova_sigma = input$anova_sigma;
+                tmp_1 <- revisedfm(n = anova_size1, mean = anova_mu1, sd = anova_sigma)
+                tmp_1 <- tmp_1$par
+                tmp_2 <- revisedfm(n = anova_size2, mean = anova_mu2, sd = anova_sigma)
+                tmp_2 <- tmp_2$par
+                tmp_3 <- revisedfm(n = anova_size3, mean = anova_mu3, sd = anova_sigma)
+                tmp_3 <- tmp_3$par
+                anova_data1 = tmp_1
+                anova_data2 = tmp_2
+                anova_data3 = tmp_3
+                y = c(anova_data1, anova_data2, anova_data3)
+                group = c(rep(sprintf("group %s", 1), each = anova_size1),
+                          rep(sprintf("group %s", 2), each = anova_size2),
+                          rep(sprintf("group %s", 3), each = anova_size3))
+                data.frame(datapoint = y, group = group)}
             }
-            anova_data1 = tmp_1
-            anova_data2 = tmp_2
-            anova_data3 = tmp_3
-            y = c(anova_data1, anova_data2, anova_data3)
-            group = c(rep(sprintf("group %s", 1), each = anova_size1),
-                      rep(sprintf("group %s", 2), each = anova_size2),
-                      rep(sprintf("group %s", 3), each = anova_size3))
-            data.frame(datapoint = y, group = group)}
     })
 
     
     output$aovPlot = renderPlotly({
         if (input$aovplottype == "scatter"){
+            cols <- c("#FF7F0E", "#2CA02C", "#D52728")
             means <- aggregate(datapoint ~ group, gen_data(), mean)
-            ggplot(gen_data(), aes(y = group, x = datapoint, fill = group)) + 
-                geom_point(alpha=0.6, size = 2.5, aes(color = factor(group))) + 
+            ggplot(gen_data(), aes(y = group, x = datapoint, color = group)) + 
+                geom_point(alpha=0.6, size = 2.5) +
+                scale_color_manual(values = cols) +
                 stat_summary(fun = mean, colour = "brown2", geom="point", shape=17, size = 3.0, show.legend=FALSE) +
                 geom_text(data = means, aes(label = sprintf("mean: %0.3f", datapoint), x = datapoint + 0.08)) +  #fontface='bold'
                 theme(legend.position="none", 
@@ -115,18 +141,6 @@ shinyServer(function(input, output, session){
                       axis.text.x = element_text(size=12, hjust=1.0),
                       axis.text.y = element_text(size=12, hjust=1.0)) + coord_flip()}
         
-        # else if (input$aovplottype == "boxplot"){
-        #     means <- aggregate(datapoint ~  group, gen_data(), mean)
-        #     ggplot(gen_data(), aes(y=group, x=datapoint, fill=group)) + 
-        #         geom_boxplot(alpha=0.6, width=0.3) +
-        #         stat_summary(fun=mean, colour="brown2", geom="point", shape=17, size=3.0, show.legend=FALSE) + 
-        #         geom_text(data = means, aes(label = sprintf("mean: %0.3f", datapoint), x = datapoint + 0.08)) + #, fontface='bold'
-        #         theme(legend.position="none", 
-        #               plot.title = element_text(size=12, hjust = 0.5), 
-        #               legend.text = element_text(size=30),
-        #               axis.text.x = element_text(size=12, hjust=0.5),
-        #               axis.text.y = element_text(size=12, hjust=0.5)) + coord_flip() + 
-        #         scale_fill_brewer(palette="Accent")}
         else if (input$aovplottype == "boxplot"){
             tmp_data = gen_data()
             means <- aggregate(datapoint ~ group, tmp_data, mean)
@@ -146,6 +160,19 @@ shinyServer(function(input, output, session){
                                                                  outlierwidth = 2)), boxmean = T)
             return(fig)
         }
+        
+        # else if (input$aovplottype == "boxplot"){
+        #     means <- aggregate(datapoint ~  group, gen_data(), mean)
+        #     ggplot(gen_data(), aes(y=group, x=datapoint, fill=group)) + 
+        #         geom_boxplot(alpha=0.6, width=0.3) +
+        #         stat_summary(fun=mean, colour="brown2", geom="point", shape=17, size=3.0, show.legend=FALSE) + 
+        #         geom_text(data = means, aes(label = sprintf("mean: %0.3f", datapoint), x = datapoint + 0.08)) + #, fontface='bold'
+        #         theme(legend.position="none", 
+        #               plot.title = element_text(size=12, hjust = 0.5), 
+        #               legend.text = element_text(size=30),
+        #               axis.text.x = element_text(size=12, hjust=0.5),
+        #               axis.text.y = element_text(size=12, hjust=0.5)) + coord_flip() + 
+        #         scale_fill_brewer(palette="Accent")}
     })
     
     output$aovdataSummary = renderDataTable({
